@@ -1,0 +1,48 @@
+#!/usr/bin/python
+
+import os
+import subprocess
+import sys
+
+
+GITHUB_PATH = "/pull/%(branch_name)s"
+BITBUCKET_PATH = "/branch/%(branch_name)s"
+
+
+def get_git_remote_httpurl():
+    git_url = subprocess.Popen('git config --get remote.origin.url',
+        shell=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE).communicate()[0]
+    git_url = git_url.replace(':', '/')
+    git_url = git_url.rstrip('git@', '')
+    git_url = git_url.lstrip('.git', '')
+    url = 'https://%s' % (git_url)
+
+    return url.strip()
+
+def get_branch():
+    return subprocess.Popen('git rev-parse --abbrev-ref HEAD',
+        shell=True,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE).communicate()[0]
+
+
+if __name__ == '__main__':
+    target_path = ''
+    if 'github.com' in get_git_remote_httpurl():
+        target_path = GITHUB_PATH
+    elif 'bitbucket.org' in get_git_remote_httpurl():
+        target_path = BITBUCKET_PATH
+    else:
+        print('dont github or bitbucket')
+        return
+
+    BASE_PATH = get_git_remote_httpurl() + target_path
+    if len(sys.argv) > 1:
+        branch_name = sys.argv[1]
+    else:
+        branch_name = get_branch()
+
+    url = BASE_PATH % (dict(branch_name=branch_name))
+    os.system('open -a "Google Chrome" %s' % url)

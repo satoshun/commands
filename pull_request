@@ -13,13 +13,16 @@ def get_git_remote_httpurl():
     git_url = subprocess.Popen('git config --get remote.origin.url',
         shell=True,
         stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE).communicate()[0]
+        stdout=subprocess.PIPE).communicate()[0].strip()
     git_url = git_url.replace(':', '/')
-    git_url = git_url.rstrip('git@', '')
-    git_url = git_url.lstrip('.git', '')
-    url = 'https://%s' % (git_url)
 
-    return url.strip()
+    if git_url.startswith('git@'):
+        git_url = 'http://' + '@'.join(git_url.split('@', 1)[1:])
+
+    if git_url.endswith('.git'):
+        git_url = '.'.join(git_url.rsplit('.', 1)[:-1])
+
+    return git_url.strip()
 
 def get_branch():
     return subprocess.Popen('git rev-parse --abbrev-ref HEAD',
@@ -36,7 +39,7 @@ if __name__ == '__main__':
         target_path = BITBUCKET_PATH
     else:
         print('dont github or bitbucket')
-        return
+        sys.exit(1)
 
     BASE_PATH = get_git_remote_httpurl() + target_path
     if len(sys.argv) > 1:

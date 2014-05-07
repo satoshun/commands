@@ -3,13 +3,29 @@
 import hashlib
 import sys
 
+try:
+    from urllib.request import urlopen
+except ImportError:
+    from urllib import urlopen
+
 
 def tosha1(path):
     sha1 = hashlib.sha1()
-    with open(path) as f:
-        sha1.update(f.read())
+    if path.startswith('http://') or path.startswith('https://'):
+        sha1.update(readnet(path))
+    else:
+        sha1.update(readfile(path))
 
     return sha1.hexdigest()
+
+
+def readfile(path):
+    with open(path) as f:
+        return f.read()
+
+
+def readnet(path):
+    return urlopen(path).read()
 
 
 if __name__ == '__main__':

@@ -48,4 +48,4 @@ if __name__ == '__main__':
         branch_name = get_branch()
 
     url = BASE_PATH % (dict(branch_name=branch_name))
-    os.system('open -a "Google Chrome" %s' % url)
+    os.system('open %s' % url)
